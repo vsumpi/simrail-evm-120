@@ -33,4 +33,4 @@ jobs:
         run: dir  # Lists all files to verify test files exist
 
       - name: Run tests
-        run: pytest -s testqt.py 
+        run: pytest -s ./tests/testqt.py
