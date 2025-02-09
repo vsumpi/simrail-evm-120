@@ -1,6 +1,6 @@
 import sys
 import requests
-# import serial
+import serial
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QDialog, QPushButton, QComboBox, QFormLayout, QMessageBox
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import QTimer, Qt
@@ -10,14 +10,17 @@ base_url = 'https://panel.simrail.eu:8084'
 servers_url = f'{base_url}/servers-open'
 trains_url_template = f'{base_url}/trains-open?serverCode='
 
-# try:
-#     with serial.Serial('COM3', 57600, timeout=5) as ser:
-#         print(ser.name)
-#         ser.read()
-#         ser.write(b" 160\n")
-#         ser.close()
-# except:
-#     exit
+# Ardino coms
+def sendMessage(signal):
+    try:
+        with serial.Serial('COM3', 57600, timeout=5) as ser:
+            print(f"Serial Communication: {signal} -> {ser.name}")
+            ser.read()
+            ser.write(f" {signal}\n".encode())
+            ser.close()
+    except:
+        exit
+sendMessage("OK")
 
 class StartupDialog(QDialog):
     def __init__(self):
@@ -48,10 +51,12 @@ class StartupDialog(QDialog):
         try:
             response = requests.get(servers_url) # Get the ServerList
             if response.status_code == 200: # 200 = OK
+                print("Fetching servers...")
                 servers_data = response.json().get('data', []) # Store data as array
                 self.servers = [server for server in servers_data if server['IsActive']] # Set ServerList from data
                 self.server_combo.clear() # Clear [Dropdown]
                 for server in self.servers:
+                    print(f"Fetched server: {server['ServerName']}")
                     self.server_combo.addItem(f"{server['ServerName']}", server['ServerCode']) # Add items to [Dropdown]
             else:
                 # Error handling
@@ -62,6 +67,7 @@ class StartupDialog(QDialog):
 
     def fetch_trains(self):
         server_code = self.server_combo.currentData() # Fetch Selected from [Dropdown]
+        print(f"Fetching trains from server: {server_code}")
         if not server_code:
             return
         try:
@@ -70,6 +76,7 @@ class StartupDialog(QDialog):
                 trains = response.json().get('data', []) # Store data in array
                 self.train_combo.clear() # Clear [Dropdown]
                 for train in trains:
+                    print(f"Fetched train: {train['TrainNoLocal']}")
                     self.train_combo.addItem(train['TrainNoLocal']) # Add items to [Dropdown] 
             else:
                 # Error handling
@@ -134,23 +141,30 @@ class TransparentWindow(QWidget):
                         train_data = train.get("TrainData", {})
                         next_signal_speed = train_data.get("SignalInFrontSpeed", 0)
                         signal_data = {
-                            "NextSignalSpeed": next_signal_speed,
+                            "NextSignalSpeed": next_signal_speed
                         }
+                        print(f"Signal Reading: {signal_data['NextSignalSpeed']}")
                         break
                 
                 if signal_data:
                     # Check next signal speed and display corresponding image
                     if signal_data['NextSignalSpeed'] == 0:
+                        sendMessage(int(signal_data['NextSignalSpeed']))
                         self.load_image("speed_0.gif")
                     elif signal_data['NextSignalSpeed'] == 40:
+                        sendMessage(int(signal_data['NextSignalSpeed']))
                         self.load_image("speed_40.gif")
                     elif signal_data['NextSignalSpeed'] == 60:
+                        sendMessage(int(signal_data['NextSignalSpeed']))
                         self.load_image("speed_40.gif")
                     elif signal_data['NextSignalSpeed'] == 80:
+                        sendMessage(int(signal_data['NextSignalSpeed']))
                         self.load_image("speed_80.gif")
                     elif signal_data['NextSignalSpeed'] == 100:
+                        sendMessage(int(signal_data['NextSignalSpeed']))
                         self.load_image("speed_80.gif")
                     elif signal_data['NextSignalSpeed'] >100:
+                        sendMessage("MAX")
                         self.load_image("speed_high.gif")
                     else:
                         self.clear_image()
@@ -187,9 +201,13 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     startup_dialog = StartupDialog()
+    print("Starting Apllication...")
     if startup_dialog.exec_() == QDialog.Accepted:
+        print(f"Selected: {startup_dialog.server_code} : {startup_dialog.train_number}")
         server_code = startup_dialog.server_code
+        sendMessage(server_code)
         train_number = startup_dialog.train_number
+        sendMessage(train_number)
         
         transparent_window = TransparentWindow(server_code, train_number)
         transparent_window.setGeometry(100, 100, 300, 250)  # Set initial window position and size
