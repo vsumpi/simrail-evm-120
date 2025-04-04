@@ -10,7 +10,7 @@ Ezen a linken: https://github.com/vsumpi/simrail-evm-120/releases/latest
 2. A program futtatása
 3. Elérhető szerver és vonat kiválasztása.<br>
 ESC - Bezár
-# Fizikai modul igényfelmérés!
+# Fizikai modul igényfelmérés! (függőben)
 Ha a szobádat is dísziteni szeretnéd, akkor töltsd ki ezt a felmérést<br>
 [![Google Forms](https://img.shields.io/badge/Google%20Forms-7248B9.svg?style=for-the-badge&logo=Google-Forms&logoColor=white)](https://docs.google.com/forms/d/e/1FAIpQLSdN6Lg1HcpgPKG5yofkDEE01M79fkpxeSfwTMg8YjC83vOTlA/viewform?usp=sharing)
 ## Észrevétel
