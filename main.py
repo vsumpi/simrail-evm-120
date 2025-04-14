@@ -2,8 +2,8 @@ import sys
 import requests
 import serial
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QDialog, QPushButton, QComboBox, QFormLayout, QMessageBox
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QPixmap, QPainter, QBrush, QPen
+from PyQt5.QtCore import QTimer, Qt        
 
 # URL Construrctor
 base_url = 'https://panel.simrail.eu:8084'
@@ -99,8 +99,24 @@ class StartupDialog(QDialog):
             QMessageBox.warning(self, 'Invalid Input', 'Please select a valid server and train.')
 
 class TransparentWindow(QWidget):
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        #painter.setPen(QPen(Qt.green,  8, Qt.SolidLine))
+        painter.setBrush(QBrush(Qt.black, Qt.SolidPattern))
+        painter.drawRoundedRect(240,0,30,120,10,10)
+        painter.setBrush(QBrush(Qt.green, Qt.SolidPattern))
+        painter.drawEllipse(250, 10, 10, 10)
+        painter.setBrush(QBrush(Qt.yellow, Qt.SolidPattern))
+        painter.drawEllipse(250, 30, 10, 10)
+        painter.setBrush(QBrush(Qt.red, Qt.SolidPattern))
+        painter.drawEllipse(250, 50, 10, 10)
+        painter.setBrush(QBrush(Qt.yellow, Qt.SolidPattern))
+        painter.drawEllipse(250, 70, 10, 10)
+        painter.setBrush(QBrush(Qt.white, Qt.SolidPattern))
+        painter.drawEllipse(250, 90, 10, 10)
     def __init__(self, server_code, train_number):
         super().__init__()
+        
         
         self.server_code = server_code 
         self.train_number = train_number
@@ -199,7 +215,6 @@ class TransparentWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-
     startup_dialog = StartupDialog()
     print("Starting Apllication...")
     if startup_dialog.exec_() == QDialog.Accepted:
