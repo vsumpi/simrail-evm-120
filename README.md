@@ -3,12 +3,28 @@
 [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/vsumpi/simrail-evm-120/total)](https://github.com/vsumpi/simrail-evm-120/releases/latest)<br>
 Ez a könyvtár továbbra is fejlesztés alatt áll és szabadidőmben igyekezni fogok minél jobb és és több játékba integrálni ezt az alkalmazást.
 A DVJ-2(EVM) ihlette rendszert már most kipróbálhatod a SimRailen belül Multiplayerben!
+# Folyamatban lévő fejlesztések
+- DVJ-2 és Sátorjelző helyes grafikai implementációja
+- Beállítások (Arduino, Sátorjelző, DVJ-2, Frissítési gyakoriság, Átlátszóság, Méretezés)
+- Optimalizált háttérfolyamatok
+- Fizikai modul
 # Letöltés
 Ezen a linken: https://github.com/vsumpi/simrail-evm-120/releases/latest
 ## Működése
-1. Letöltés & Telepítés
+1. **Letöltés & Telepítés**<br>
+**Windows:** .msi<br>
+**Linux**:<br>
+  a. Clone<br>
+  b. Csomagold ki a tartalmát<br>
+  c. Belépés a mappába<br>
+  d. Virtuális környezet létrehozása `python3 -m venv ./`<br>
+  e. Virtuális környezet aktiválása `source ./bin/activate`<br>
+  f. Követelmények telepítése `pip install -r requirements.txt`<br>
+  g. Alkalmazás futtatása `python3 main.py`<br>
 2. A program futtatása
 3. Elérhető szerver és vonat kiválasztása.<br>
+![image](https://github.com/user-attachments/assets/c7ceef27-c71c-4d48-b8c4-4409a3fd90f5)
+
 ESC - Bezár
 # Fizikai modul igényfelmérés! (függőben)
 Ha a szobádat is dísziteni szeretnéd, akkor töltsd ki ezt a felmérést<br>
