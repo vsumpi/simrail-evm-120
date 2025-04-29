@@ -22,7 +22,7 @@ servers_url = f"{base_url}/servers-open"
 trains_url_template = f"{base_url}/trains-open?serverCode="
 
 # Arduino coms
-""" def sendMessage(signal):
+def sendMessage(signal):
     try:
         with serial.Serial('COM3', 57600, timeout=5) as ser:
             print(f"Serial Communication: {signal} -> {ser.name}")
@@ -31,7 +31,7 @@ trains_url_template = f"{base_url}/trains-open?serverCode="
     except Exception as e:
         print(f"Serial communication failed: {e}")
 
-sendMessage("OK") """
+sendMessage("OK")
 
 
 class StartupDialog(QDialog):
