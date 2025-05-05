@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QFormLayout,
     QMessageBox,
 )
-from PyQt5.QtGui import QPixmap, QPainter, QBrush
+from PyQt5.QtGui import QPixmap, QPainter, QBrush, QFont
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QColor
 
@@ -111,7 +111,23 @@ class StartupDialog(QDialog):
             QMessageBox.warning(
                 self, "Invalid Input", "Please select a valid server and train."
             )
+class DVJ:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.label_text = "5×7 Matrix"
 
+    def draw(self, painter):
+        # Draw outer black box
+        painter.setBrush(QBrush(QColor("black")))
+        painter.drawRect(self.x, self.y, 140, 80)
+
+    def dspeed(self, painter, text):
+        self.label_text = text
+        # Draw label inside the box (optional)
+        painter.setPen(QColor("red"))
+        painter.setFont(QFont('5X7 Matrix',28))
+        painter.drawText(self.x + 25 , self.y + 60, self.label_text)
 
 class SignalLight:
     def __init__(self, x, y):
@@ -127,18 +143,20 @@ class SignalLight:
 
     def draw(self, painter):
         painter.setBrush(QBrush(QColor("black")))
-        painter.drawRoundedRect(self.x - 10, 0, 40, 140, 10, 10)
+        painter.drawRoundedRect(self.x, self.y, 40, 140, 10, 10)
 
         for i, (lamp_colors, is_on) in enumerate(zip(self.lamp_colors, self.lights)):
             color = QColor(lamp_colors) if is_on else QColor("grey")
             painter.setBrush(QBrush(color, Qt.SolidPattern))
-            painter.drawEllipse(self.x, 10 + i * 25, 20, 20)
+            painter.drawEllipse(self.x + 10 , 10 + i * 25, 20, 20)
 
 
 class TransparentWindow(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         self.signal_light.draw(painter)
+        self.dvj.draw(painter)
+        self.dvj.dspeed(painter, "---")
 
     def __init__(self, server_code, train_number):
         super().__init__()
@@ -146,7 +164,8 @@ class TransparentWindow(QWidget):
         self.train_number = train_number
         self.url = f"{trains_url_template}{server_code}"
 
-        self.signal_light = SignalLight(x=90, y=20)
+        self.signal_light = SignalLight(x=0, y=0)
+        self.dvj = DVJ(x=45, y=0)
 
         self.setWindowTitle("EVM120")
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
