@@ -1,5 +1,3 @@
-# main.py
-
 # --- IMPORTS ---
 # Import necessary libraries.
 import sys  # For system-specific parameters and functions, like exiting the app.
@@ -28,7 +26,7 @@ servers_url = f"{base_url}/servers-open"
 trains_url_template = f"{base_url}/trains-open?serverCode="
 
 
-# --- ARDUINO COMMUNICATION ---
+'''# --- ARDUINO COMMUNICATION ---
 def sendMessage(signal):
     """
     Sends a string 'signal' to a device connected to the serial port 'COM3'.
@@ -45,7 +43,7 @@ def sendMessage(signal):
         print(f"Serial communication failed: {e}")
 
 # Send an initial "OK" message on startup to check the connection.
-sendMessage("OK")
+sendMessage("OK")'''
 
 
 # --- STARTUP DIALOG ---
