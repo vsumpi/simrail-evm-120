@@ -108,8 +108,6 @@ class StartupDialog(QDialog):
             QMessageBox.warning(self, "Error", "Exception occurred during server request.")
 
     def fetch_trains(self):
-        """Fetches the list of trains for the currently selected server."""
-        server_code = self.server_combo.currentData()  # Get the ServerCode of the selected server.
         print(f"Fetching trains from server: {server_code}")
         if not server_code:
             return
@@ -118,14 +116,26 @@ class StartupDialog(QDialog):
             if response.status_code == 200:
                 trains = response.json().get("data", [])
                 self.train_combo.clear()
-                for train in trains:
-                    # Add each train number to the train dropdown.
-                    self.train_combo.addItem(train["TrainNoLocal"])
+                train_numbers = [train["TrainNoLocal"] for train in trains]
+                """ INSERTION SORT v.2"""
+                for i in range(1, len(train_numbers)):
+                    j = i - 1
+                    helper = train_numbers[i]
+                    while j >= 0 and train_numbers[j] > train_numbers[j + 1]:
+                        train_numbers[j], train_numbers[j + 1] = (
+                            train_numbers[j + 1],
+                            train_numbers[j],
+                        )
+                        j -= 1
+                    helper = train_numbers[j + 1]
+
+                for train in train_numbers:
+                    print(f"Fetched train: {train}")
+                    self.train_combo.addItem(train)
             else:
                 QMessageBox.warning(self, "Error", "Failed to fetch trains.")
         except Exception as e:
             print(f"Exception occurred during train request: {str(e)}")
-            QMessageBox.warning(self, "Error", "Exception occurred during train request.")
 
     def start_application(self):
         """
