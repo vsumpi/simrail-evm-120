@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QFormLayout,  # A layout manager for two-column forms (e.g., "Label: [Widget]").
     QMessageBox,  # A dialog for showing messages (warnings, errors, info).
 )
-from PyQt5.QtGui import QPainter, QBrush, QFont, QColor  # Classes for drawing.
+from PyQt5.QtGui import QPainter, QBrush, QFont, QColor, QIcon  # Classes for drawing.
 from PyQt5.QtCore import Qt, QTimer  # Core Qt functionalities, including the timer.
 
 # --- GLOBAL CONFIGURATION ---
@@ -54,7 +54,8 @@ class StartupDialog(QDialog):
     """
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("EVM120")
+        self.setWindowTitle("EVM-120")
+        self.setWindowIcon(QIcon('./images/logo.ico'))
         self.servers = []  # A list to store data about available servers.
         self.init_ui()  # Set up the user interface elements.
         self.fetch_servers()  # Immediately fetch server data to populate the dropdown.
@@ -246,7 +247,8 @@ class TransparentWindow(QWidget):
 
 
         # Configure the window properties.
-        self.setWindowTitle("EVM120")
+        self.setWindowTitle("EVM-120")
+        self.setWindowIcon(QIcon('./images/logo.ico'))
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint) # No border, always on top.
         self.setAttribute(Qt.WA_TranslucentBackground) # Make the background transparent.
 
