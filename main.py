@@ -1,72 +1,113 @@
-import sys
-import requests
-import serial
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QDialog, QPushButton, QComboBox, QFormLayout, QMessageBox
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import QTimer, Qt
+# main.py
 
-# URL Construrctor
-base_url = 'https://panel.simrail.eu:8084'
-servers_url = f'{base_url}/servers-open'
-trains_url_template = f'{base_url}/trains-open?serverCode='
+# --- IMPORTS ---
+# Import necessary libraries.
+import sys  # For system-specific parameters and functions, like exiting the app.
+import requests  # For making HTTP requests to the web API.
+import serial  # For serial communication (e.g., with an Arduino).
+from PyQt5.QtWidgets import (
+    QApplication,  # Manages the GUI application's control flow and main settings.
+    QWidget,  # Base class for all user interface objects.
+    QVBoxLayout,  # A layout manager that arranges widgets vertically.
+    QLabel,  # A widget for displaying text or images.
+    QDialog,  # A base class for dialog windows.
+    QPushButton,  # A command button widget.
+    QComboBox,  # A dropdown list widget.
+    QFormLayout,  # A layout manager for two-column forms (e.g., "Label: [Widget]").
+    QMessageBox,  # A dialog for showing messages (warnings, errors, info).
+)
+from PyQt5.QtGui import QPainter, QBrush, QFont, QColor  # Classes for drawing.
+from PyQt5.QtCore import Qt, QTimer  # Core Qt functionalities, including the timer.
 
-# Ardino coms
+# --- GLOBAL CONFIGURATION ---
+# Base URL for the SimRail API.
+base_url = "https://panel.simrail.eu:8084"
+# Specific endpoint for fetching open servers.
+servers_url = f"{base_url}/servers-open"
+# A template for the URL to fetch trains, which requires a server code.
+trains_url_template = f"{base_url}/trains-open?serverCode="
+
+
+# --- ARDUINO COMMUNICATION ---
 def sendMessage(signal):
+    """
+    Sends a string 'signal' to a device connected to the serial port 'COM3'.
+    This is intended for communication with an Arduino or similar microcontroller.
+    """
     try:
+        # 'with' statement ensures the serial port is properly closed after use.
         with serial.Serial('COM3', 57600, timeout=5) as ser:
             print(f"Serial Communication: {signal} -> {ser.name}")
-            ser.read()
-            ser.write(f" {signal}\n".encode())
-            ser.close()
-    except:
-        exit
+            ser.read()  # Read any existing data from the buffer.
+            ser.write(f" {signal}\n".encode())  # Encode the string to bytes and send it.
+    except Exception as e:
+        # If communication fails (e.g., port not found, device disconnected), print an error.
+        print(f"Serial communication failed: {e}")
+
+# Send an initial "OK" message on startup to check the connection.
 sendMessage("OK")
 
+
+# --- STARTUP DIALOG ---
 class StartupDialog(QDialog):
+    """
+    This dialog window appears on startup, allowing the user to select
+    a game server and a train before the main application window opens.
+    """
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('EVM120') # Set WindowTitle
-        self.servers = [] # Create Array for ServerList
-        self.init_ui() # Init UI: Make Layout
-        self.fetch_servers() # Fetch ServerList from SimRail servers
+        self.setWindowTitle("EVM120")
+        self.servers = []  # A list to store data about available servers.
+        self.init_ui()  # Set up the user interface elements.
+        self.fetch_servers()  # Immediately fetch server data to populate the dropdown.
 
     def init_ui(self):
-        # We create a Form to display our data
-        layout = QFormLayout() # New FormLayout
-        
-        self.server_combo = QComboBox() # Dropdown
-        self.server_combo.currentIndexChanged.connect(self.fetch_trains) # Update dropdown values
-        layout.addRow('Select Server:', self.server_combo) # Select Server: [Dropdown]
+        """Initializes the widgets and layout for the startup dialog."""
+        layout = QFormLayout()
 
-        self.train_combo = QComboBox() # Dropdown
-        layout.addRow('Select Train:', self.train_combo) # Select Train: [Dropdown]
+        # Dropdown for server selection.
+        self.server_combo = QComboBox()
+        self.server_combo.currentIndexChanged.connect(self.fetch_trains)  # Call fetch_trains when a server is selected.
+        layout.addRow("Select Server:", self.server_combo)
 
-        self.start_button = QPushButton('Start') # Button
-        self.start_button.clicked.connect(self.start_application) # Start Application
-        layout.addWidget(self.start_button) # [Button]
+        # Dropdown for train selection.
+        self.train_combo = QComboBox()
+        layout.addRow("Select Train:", self.train_combo)
 
-        self.setLayout(layout) # Render Layout
+        # Dropdown for display mode selection
+        self.display_mode_combo = QComboBox()
+        self.display_mode_combo.addItem("Both", "both")
+        self.display_mode_combo.addItem("Signal Light", "signal_light")
+        self.display_mode_combo.addItem("DVJ", "dvj")
+        layout.addRow("Display Mode:", self.display_mode_combo)
+
+        # Button to start the main application.
+        self.start_button = QPushButton("Start")
+        self.start_button.clicked.connect(self.start_application)
+        layout.addWidget(self.start_button)
+
+        self.setLayout(layout)
 
     def fetch_servers(self):
+        """Fetches the list of active servers from the API and populates the server dropdown."""
         try:
-            response = requests.get(servers_url) # Get the ServerList
-            if response.status_code == 200: # 200 = OK
+            response = requests.get(servers_url)
+            if response.status_code == 200:
                 print("Fetching servers...")
-                servers_data = response.json().get('data', []) # Store data as array
-                self.servers = [server for server in servers_data if server['IsActive']] # Set ServerList from data
-                self.server_combo.clear() # Clear [Dropdown]
+                servers_data = response.json().get("data", [])
+                # Filter for only active servers.
+                self.servers = [server for server in servers_data if server["IsActive"]]
+                self.server_combo.clear()
                 for server in self.servers:
-                    print(f"Fetched server: {server['ServerName']}")
-                    self.server_combo.addItem(f"{server['ServerName']}", server['ServerCode']) # Add items to [Dropdown]
+                    # Add each server to the dropdown, storing its ServerCode as data.
+                    self.server_combo.addItem(f"{server['ServerName']}", server["ServerCode"])
             else:
-                # Error handling
-                QMessageBox.warning(self, 'Error', 'Failed to fetch servers.')
+                QMessageBox.warning(self, "Error", "Failed to fetch servers.")
         except Exception as e:
             print(f"Exception occurred during server request: {str(e)}")
-            QMessageBox.warning(self, 'Error', 'Exception occurred during server request.')
+            QMessageBox.warning(self, "Error", "Exception occurred during server request.")
 
     def fetch_trains(self):
-        server_code = self.server_combo.currentData()
         print(f"Fetching trains from server: {server_code}")
         if not server_code:
             return
@@ -95,137 +136,247 @@ class StartupDialog(QDialog):
                 QMessageBox.warning(self, "Error", "Failed to fetch trains.")
         except Exception as e:
             print(f"Exception occurred during train request: {str(e)}")
-            QMessageBox.warning(
-                self, "Error", "Exception occurred during train request."
-            )
-
 
     def start_application(self):
-        server_code = self.server_combo.currentData() # Set ServerCode
-        train_number = self.train_combo.currentText() # Set TrainNumber
-        
-        # Is train available?
+        """
+        Called when the 'Start' button is clicked. It validates the selections
+        and, if valid, closes the dialog with an 'Accepted' status.
+        """
+        server_code = self.server_combo.currentData()
+        train_number = self.train_combo.currentText()
+        display_mode = self.display_mode_combo.currentData()
+
         if server_code and train_number:
             self.server_code = server_code
             self.train_number = train_number
-            self.accept()
+            self.display_mode = display_mode # Store the selected display mode
+            self.accept()  # This closes the dialog and returns QDialog.Accepted.
         else:
-            # Error handling
-            QMessageBox.warning(self, 'Invalid Input', 'Please select a valid server and train.')
+            QMessageBox.warning(self, "Invalid Input", "Please select a valid server and train.")
 
+# --- DISPLAY WIDGETS ---
+
+class DVJ:
+    """
+    A custom widget to display a digital speed value (like a 5x7 matrix display).
+    """
+    def __init__(self, x, y):
+        self.x = x  # The x-coordinate of the widget.
+        self.y = y  # The y-coordinate of the widget.
+        self.label_text = "---"  # The initial text to display.
+
+    def set_speed(self, text):
+        """Updates the internal state (the text) of the widget."""
+        self.label_text = str(text)
+
+    def draw(self, painter):
+        """Draws the widget using its current state."""
+        # Draw the black background box.
+        painter.setBrush(QBrush(QColor("black")))
+        painter.drawRect(self.x, self.y, 140, 80)
+        # Draw the text stored in self.label_text.
+        painter.setPen(QColor("red"))
+        painter.setFont(QFont('5X7 Matrix', 28))
+        painter.drawText(self.x + 25, self.y + 60, self.label_text)
+
+
+class SignalLight:
+    """
+    A custom widget to display a railway signal with multiple lamps.
+    """
+    def __init__(self, x, y):
+        self.x = x  # The x-coordinate of the widget.
+        self.y = y  # The y-coordinate of the widget.
+        # Define the colors of the lamps from top to bottom.
+        self.lamp_colors = ["lime", "orange", "red", "orange", "white"]
+        # A list of booleans to track which lamps are on (True) or off (False).
+        self.lights = [False] * len(self.lamp_colors)
+
+    def set_aspect(self, *on_indices):
+        """Sets which lights are on based on their indices."""
+        self.lights = [i in on_indices for i in range(len(self.lamp_colors))]
+
+    def draw(self, painter):
+        """Draws the signal housing and all the lamps based on their on/off state."""
+        # Draw the black signal housing.
+        painter.setBrush(QBrush(QColor("black")))
+        painter.drawRoundedRect(self.x, self.y, 40, 140, 10, 10)
+        # Iterate through the lamps and draw each one.
+        for i, (lamp_color, is_on) in enumerate(zip(self.lamp_colors, self.lights)):
+            # Choose the lamp's color: its actual color if 'on', or grey if 'off'.
+            color = QColor(lamp_color) if is_on else QColor("grey")
+            painter.setBrush(QBrush(color, Qt.SolidPattern))
+            painter.drawEllipse(self.x + 10, 10 + i * 25, 20, 20)
+
+
+# --- MAIN APPLICATION WINDOW ---
 class TransparentWindow(QWidget):
-    def __init__(self, server_code, train_number):
+    """
+    The main application window. It's frameless, stays on top, and has a transparent background.
+    It acts as a controller, fetching data and telling the display widgets how to update.
+    """
+    def paintEvent(self, event):
+        """
+        This is a special PyQt method that is called automatically whenever the window
+        needs to be redrawn. Its only job is to tell the child widgets to draw themselves.
+        """
+        painter = QPainter(self)
+        if self.display_mode == "signal_light" or self.display_mode == "both":
+            self.signal_light.draw(painter)
+        if self.display_mode == "dvj" or self.display_mode == "both":
+            self.dvj.draw(painter)
+
+    def __init__(self, server_code, train_number, display_mode):
         super().__init__()
-        
-        self.server_code = server_code 
+        self.server_code = server_code
         self.train_number = train_number
-        self.url = f'{trains_url_template}{server_code}'
-        
-        self.setWindowTitle('EVM120') # Set WindowTitle
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint) # Set Frameless | AlwaysOnTop
-        self.setAttribute(Qt.WA_TranslucentBackground) # Set Transparent window
-        
-        self.init_ui()
-        
-        # Setup timer to fetch API data every 5 seconds (5000 milliseconds)
+        self.display_mode = display_mode # Store the selected display mode
+        self.url = f"{trains_url_template}{server_code}"
+
+        # Create instances of our custom display widgets.
+        # Adjust positions based on selected mode if desired for better layout
+        if display_mode == "signal_light":
+            self.signal_light = SignalLight(x=40, y=0)
+            self.dvj = DVJ(x=0, y=0) # DVJ still created but not drawn
+        elif display_mode == "dvj":
+            self.signal_light = SignalLight(x=0, y=0) # SignalLight still created but not drawn
+            self.dvj = DVJ(x=0, y=0)
+        else: # "both"
+            self.signal_light = SignalLight(x=0, y=0)
+            self.dvj = DVJ(x=45, y=0)
+
+
+        # Configure the window properties.
+        self.setWindowTitle("EVM120")
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint) # No border, always on top.
+        self.setAttribute(Qt.WA_TranslucentBackground) # Make the background transparent.
+
+        # Set initial size based on display mode
+        if display_mode == "signal_light":
+            self.setGeometry(100, 100, 120, 150)
+        elif display_mode == "dvj":
+            self.setGeometry(100, 100, 150, 90)
+        else: # "both"
+            self.setGeometry(100, 100, 200, 150)
+
+
+        # Set up a timer to fetch data periodically.
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.fetch_api_data)
-        self.timer.start(5000)
-        
-        self.old_pos = None
-        
-    def init_ui(self):
-        layout = QVBoxLayout() # Vertically Stacked Layout
-        
-        self.image_label = QLabel()
-        self.image_label.setFixedSize(200, 200)  # Set a fixed size for the image label
-        layout.addWidget(self.image_label)
-        
-        self.setLayout(layout)
-        
+        self.timer.timeout.connect(self.fetch_api_data) # Call fetch_api_data every time the timer fires.
+        self.timer.start(5000)  # Timer fires every 5000 milliseconds (5 seconds).
+
+        self.old_pos = None # Used to handle window dragging.
+
     def fetch_api_data(self):
+        """
+        Called by the timer to fetch data from the API, process it,
+        and trigger a visual update.
+        """
         try:
             response = requests.get(self.url)
             if response.status_code == 200:
                 data = response.json()
-                
-                signal_data = None
-                
+                train_found = False
+                # Find our selected train in the list of all trains on the server.
                 for train in data.get("data", []):
                     if train.get("TrainNoLocal") == self.train_number:
                         train_data = train.get("TrainData", {})
-                        next_signal_speed = train_data.get("SignalInFrontSpeed", 0)
-                        signal_data = {
-                            "NextSignalSpeed": next_signal_speed
-                        }
-                        print(f"Signal Reading: {signal_data['NextSignalSpeed']}")
+                        # Get the speed of the signal in front of the train.
+                        speed = train_data.get("SignalInFrontSpeed", 0)
+                        print(f"Signal Reading: {speed}")
+                        # Call the central method to update the visuals.
+                        self.update_visuals(speed)
+                        train_found = True
                         break
-                
-                if signal_data:
-                    # Check next signal speed and display corresponding image
-                    if signal_data['NextSignalSpeed'] == 0:
-                        sendMessage(int(signal_data['NextSignalSpeed']))
-                        self.load_image("speed_0.gif")
-                    elif signal_data['NextSignalSpeed'] == 40:
-                        sendMessage(int(signal_data['NextSignalSpeed']))
-                        self.load_image("speed_40.gif")
-                    elif signal_data['NextSignalSpeed'] == 60:
-                        sendMessage(int(signal_data['NextSignalSpeed']))
-                        self.load_image("speed_40.gif")
-                    elif signal_data['NextSignalSpeed'] == 80:
-                        sendMessage(int(signal_data['NextSignalSpeed']))
-                        self.load_image("speed_80.gif")
-                    elif signal_data['NextSignalSpeed'] == 100:
-                        sendMessage(int(signal_data['NextSignalSpeed']))
-                        self.load_image("speed_80.gif")
-                    elif signal_data['NextSignalSpeed'] >100:
-                        sendMessage("MAX")
-                        self.load_image("speed_high.gif")
-                    else:
-                        self.clear_image()
-        
+                # If the train is not found (e.g., left the game), reset visuals.
+                if not train_found:
+                    self.update_visuals(None)
+            else:
+                self.update_visuals(None) # Reset visuals on API error
         except Exception as e:
+            # If any error occurs during the request, reset visuals.
             print(f"Exception occurred during API request: {str(e)}")
-            self.clear_image()
-    
-    def load_image(self, image_path):
-        pixmap = QPixmap(image_path).scaled(self.image_label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        self.image_label.setPixmap(pixmap)
-    
-    def clear_image(self):
-        self.image_label.clear()
-    
+            self.update_visuals(None)
+
+    def update_visuals(self, speed):
+        """
+        This central method updates the state of all visual components based on the speed
+        and then schedules a repaint of the window.
+        """
+        # --- Update the state of the DVJ (digital display) ---
+        if self.display_mode == "dvj" or self.display_mode == "both":
+            if speed is None:
+                self.dvj.set_speed("ERR")  # Show "ERR" if there's no data or an error.
+            elif speed == 32767:
+                self.dvj.set_speed("MAX")  # Show "MAX" for this specific high-speed value.
+            else:
+                self.dvj.set_speed(speed)  # For all other cases, show the actual speed number.
+
+        # --- Update the state of the SignalLight ---
+        if self.display_mode == "signal_light" or self.display_mode == "both":
+            if speed == 0:
+                self.signal_light.set_aspect(2)  # Red light.
+            elif speed in [40, 60]:
+                self.signal_light.set_aspect(1, 3)  # Double orange.
+            elif speed in [80, 100]:
+                self.signal_light.set_aspect(0, 3)  # Green and orange.
+            elif speed is not None and speed > 100:
+                self.signal_light.set_aspect(0)  # Green light.
+            else:
+                self.signal_light.set_aspect() # All lights off (default/error state).
+        
+        # Optionally, send the final displayed text to the Arduino.
+        # sendMessage(self.dvj.label_text)
+
+        # --- Schedule a Repaint ---
+        # This is crucial. It tells PyQt that the widget's state has changed
+        # and it needs to be redrawn, which will trigger the paintEvent.
+        self.update()
+
+    # --- WINDOW MOVEMENT AND CLOSE EVENTS ---
     def mousePressEvent(self, event):
+        """Captures the mouse position when the left button is pressed."""
         if event.button() == Qt.LeftButton:
             self.old_pos = event.pos()
-    
+
     def mouseMoveEvent(self, event):
+        """Moves the window based on how much the mouse has moved."""
         if self.old_pos is not None:
             delta = event.pos() - self.old_pos
             self.move(self.pos() + delta)
-    
+
     def mouseReleaseEvent(self, event):
+        """Resets the stored mouse position when the left button is released."""
         if event.button() == Qt.LeftButton:
             self.old_pos = None
-    
+
     def keyPressEvent(self, event):
+        """Closes the application if the Escape key is pressed."""
         if event.key() == Qt.Key_Escape:
             self.close()
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
 
-    startup_dialog = StartupDialog()
-    print("Starting Apllication...")
-    if startup_dialog.exec_() == QDialog.Accepted:
-        print(f"Selected: {startup_dialog.server_code} : {startup_dialog.train_number}")
-        server_code = startup_dialog.server_code
-        sendMessage(server_code)
-        train_number = startup_dialog.train_number
-        sendMessage(train_number)
-        
-        transparent_window = TransparentWindow(server_code, train_number)
-        transparent_window.setGeometry(100, 100, 300, 250)  # Set initial window position and size
-        transparent_window.show()
+# --- APPLICATION ENTRY POINT ---
+if __name__ == "__main__":
+    # This block runs only when the script is executed directly.
+    app = QApplication(sys.argv)
     
+    # Create and show the startup dialog first.
+    startup_dialog = StartupDialog()
+    print("Starting Application...")
+    
+    # The '.exec_()' shows the dialog and waits until it is closed.
+    if startup_dialog.exec_() == QDialog.Accepted:
+        # This code runs only if the user clicks "Start" with valid selections.
+        print(f"Selected: Server {startup_dialog.server_code}, Train {startup_dialog.train_number}, Display Mode: {startup_dialog.display_mode}")
+        server_code = startup_dialog.server_code
+        train_number = startup_dialog.train_number
+        display_mode = startup_dialog.display_mode
+
+        # Create and show the main transparent window.
+        transparent_window = TransparentWindow(server_code, train_number, display_mode)
+        # The initial geometry is now set inside TransparentWindow's __init__
+        transparent_window.show()
+
+        # Start the application's main event loop and exit when it's done.
         sys.exit(app.exec_())
