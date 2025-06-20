@@ -106,6 +106,7 @@ class StartupDialog(QDialog):
             QMessageBox.warning(self, "Error", "Exception occurred during server request.")
 
     def fetch_trains(self):
+        server_code = self.server_combo.currentData()
         print(f"Fetching trains from server: {server_code}")
         if not server_code:
             return
@@ -307,8 +308,10 @@ class TransparentWindow(QWidget):
                 self.dvj.set_speed("ERR")  # Show "ERR" if there's no data or an error.
             elif speed == 32767:
                 self.dvj.set_speed("MAX")  # Show "MAX" for this specific high-speed value.
+            elif speed == 0:
+                self.dvj.set_speed(" o ")  # Show "MAX" for this specific high-speed value.
             else:
-                self.dvj.set_speed(speed)  # For all other cases, show the actual speed number.
+                self.dvj.set_speed(f" {speed}")  # For all other cases, show the actual speed number.
 
         # --- Update the state of the SignalLight ---
         if self.display_mode == "signal_light" or self.display_mode == "both":
