@@ -177,7 +177,7 @@ class DVJ:
         # Draw the text stored in self.label_text.
         painter.setPen(QColor("red"))
         painter.setFont(QFont('5X7 Matrix', 28))
-        painter.drawText(self.x + 25, self.y + 60, self.label_text)
+        painter.drawText(self.x + 23, self.y + 60, self.label_text)
 
 
 class SignalLight:
@@ -306,12 +306,15 @@ class TransparentWindow(QWidget):
         """
         # --- Update the state of the DVJ (digital display) ---
         if self.display_mode == "dvj" or self.display_mode == "both":
+            speed = 100
             if speed is None:
                 self.dvj.set_speed("ERR")  # Show "ERR" if there's no data or an error.
             elif speed == 32767:
                 self.dvj.set_speed("MAX")  # Show "MAX" for this specific high-speed value.
             elif speed == 0:
                 self.dvj.set_speed(" o ")  # Show "MAX" for this specific high-speed value.
+            elif speed >= 100:
+                self.dvj.set_speed(speed)
             else:
                 self.dvj.set_speed(f" {speed}")  # For all other cases, show the actual speed number.
 
