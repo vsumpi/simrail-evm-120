@@ -306,7 +306,6 @@ class TransparentWindow(QWidget):
         """
         # --- Update the state of the DVJ (digital display) ---
         if self.display_mode == "dvj" or self.display_mode == "both":
-            speed = 100
             if speed is None:
                 self.dvj.set_speed("ERR")  # Show "ERR" if there's no data or an error.
             elif speed == 32767:
