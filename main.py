@@ -173,11 +173,11 @@ class DVJ:
         """Draws the widget using its current state."""
         # Draw the black background box.
         painter.setBrush(QBrush(QColor("black")))
-        painter.drawRect(self.x, self.y, 140, 80)
+        painter.drawRect(self.x, self.y, 130, 70)
         # Draw the text stored in self.label_text.
         painter.setPen(QColor("red"))
         painter.setFont(QFont('5X7 Matrix', 28))
-        painter.drawText(self.x + 23, self.y + 60, self.label_text)
+        painter.drawText(self.x + 17, self.y + 55, self.label_text)
 
 
 class SignalLight:
