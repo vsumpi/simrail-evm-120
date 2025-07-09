@@ -1,4 +1,4 @@
-# simrail-evm-120 [W.I.P.]
+# simrail-evm-120
 [![GitHub Release](https://img.shields.io/github/v/release/vsumpi/simrail-evm-120)](https://github.com/vsumpi/simrail-evm-120/releases/latest)
 [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/vsumpi/simrail-evm-120/total)](https://github.com/vsumpi/simrail-evm-120/releases/latest)<br>
 Ez a könyvtár továbbra is fejlesztés alatt áll és szabadidőmben igyekezni fogok minél jobb és és több játékba integrálni ezt az alkalmazást.
