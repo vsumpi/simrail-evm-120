@@ -1,4 +1,3 @@
-<img width="884" height="1230" alt="image" src="https://github.com/user-attachments/assets/7adcff38-a2f6-4c61-945d-be6520e168d5" /># simrail-evm-120
 [![GitHub Release](https://img.shields.io/github/v/release/vsumpi/simrail-evm-120)](https://github.com/vsumpi/simrail-evm-120/releases/latest)
 [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/vsumpi/simrail-evm-120/total)](https://github.com/vsumpi/simrail-evm-120/releases/latest)<br>
 Jelfeladás már SimRailen belül is Multiplayerben! A magyar jelfeladás rendszer alapján Lengyel vasútra átírt verziója.
