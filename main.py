@@ -2,7 +2,7 @@
 # Import necessary libraries.
 import sys  # For system-specific parameters and functions, like exiting the app.
 import requests  # For making HTTP requests to the web API.
-import serial  # For serial communication (e.g., with an Arduino).
+#import serial  # For serial communication (e.g., with an Arduino).
 from PyQt5.QtWidgets import (
     QApplication,  # Manages the GUI application's control flow and main settings.
     QWidget,  # Base class for all user interface objects.
