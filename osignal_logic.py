@@ -1,4 +1,4 @@
-class EvmLogic:
+class SignalLogic:
     # Logic for Signalling:
     # 0 - Off
     # 1 - On / Green
@@ -6,7 +6,7 @@ class EvmLogic:
     def __init__(self):
         super().__init__()
 
-    def get_signal_aspect(self, train_speed):
+    def get_aspect(self, train_speed):
         match train_speed:
 
             case None:
@@ -24,7 +24,7 @@ class EvmLogic:
             case _:
                 return [0, 0, 0, 0, 0, 0]
 
-    def get_signal_repeater_aspect(self, train_speed):
+    def get_repeater_aspect(self, train_speed):
         match train_speed:
             case None:
                 return [0, 0, 0, 0, 0, 1, 0]
@@ -47,7 +47,7 @@ class EvmLogic:
             case _:
                 return [0, 0, 0, 0, 1, 0, 0]
 
-    def get_dvj_text(self, train_speed):
+    def get_text(self, train_speed):
         match train_speed:
             case None:
                 return "ERR"

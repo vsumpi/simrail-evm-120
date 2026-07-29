@@ -1,11 +1,14 @@
 # Find access and resources at https://wiki.simrail.eu/en/API/API-Introduction
 
 # --- IMPORTS ---
-from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtWidgets import *
-import requests
-from functools import wraps
+from PyQt5.QtCore import QObject, pyqtSignal, QUrl
+from PyQt5.QtWebSockets import QWebSocket
+import json
+# from PyQt5.QtWidgets import *
+# import requests
+# from functools import wraps
 
+'''
 # --- URLs ---
 
 BASE_URL = "https://panel.simrail.eu"
@@ -28,19 +31,50 @@ def api_safety_net(func):
             self.error_occurred.emit(f"Internal Error in {func.__name__}: {str(e)}")
 
     return wrapper
-
+'''
 
 # --- API CLASS ---
 class FetchData(QObject):
 
     # Creating signals to send data back for UI
-    error_occurred = pyqtSignal(object)  # *
+    error_occurred = pyqtSignal(object)  # errors
+    speed_limit_loaded = pyqtSignal(int) # # Telemetry for UI
+    next_speed_limit_loaded = pyqtSignal(int) # # Telemetry for UI
 
+    def __init__(self, parent = ...):
+        super().__init__(self)
+        self.client = QWebSocket()
+
+        self.client.textMessageReceived.connect(self.on_message)
+        self.client.error.connect(self.on_error)
+
+    def start_telemetry(self):
+        print("Connecting to SimrailConnect WebSocket...")
+        self.client.open(QUrl("ws://localhost:5556/ws"))
+
+    def on_message(self, message):
+        try:
+            data = json.loads(message)
+            if "speedLimitKmh" in data:
+                self.speed_limit_loaded.emit(int(data["speedLimitKmh"]))
+            if "nextSpeedLimitKmh" in data:
+                self.next_speed_limit_loaded.emit()
+        except Exception as e:
+            self.error_occurred.emit(f"Internal Parse Error: {str(e)}")
+
+    def on_error(self, error_code):
+        self.error_occurred.emit(f"WebSocket Network Error: {self.client.errorString()}")
+
+
+    '''
+    FOR API calls
     servers_loaded = pyqtSignal(list)  # Online servers
     trains_loaded = pyqtSignal(list)  # Running trains by number
     speed_limit_loaded = pyqtSignal(int)  # Telemetry for UI
-
-    @api_safety_net
+    '''
+    
+    '''
+    API calls
     def get_active_servers(self):
         response = requests.get(GET_SERVER_LIST_URL, timeout=5)
         if response.status_code == 200:
@@ -73,3 +107,4 @@ class FetchData(QObject):
             if selected_train:
                 speed_limit = selected_train.get("Velocity", 0)
                 self.speed_limit_loaded.emit(speed_limit)
+    '''
